@@ -1,0 +1,23 @@
+#+title: Readme
+
+
+* MINTIME
+
+A Simple pipeline state exploitation written in c++ with the following features
+        + Timing based arithmitic
+        + Greedy Algorithm to find the most amount of incremental cycles
+        + Finds better operation based on CPU
+
+WARNING: Needs more testing on other CPUs
+WARNING: Needs docs and doxygen.
+
+TODO: Add More Operation Types
+        + Division, Shift. Mixed Operations
+TODO: DEPENDENCY VARIANTS
+TODO: INSTRUCTION MIX EXPERIMENTS.
+TODO: BRANCH PIPELINE BEHAVIOR
+TODO: CPU-AWARE SCHEDULING
+TODO: VISUALIZATION
+        + Export data to CSV
+TODO: CONFIGURABLE EXPERIMENT RUNNER
+TODO: VERIFICATION HELPER

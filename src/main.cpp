@@ -13,13 +13,16 @@ struct Measured {
 };
 
 /**
- * @brief Probes the system to measure the performance of different arithmetic operations.
- * 
- * This function calculates the median time taken for slow and fast addition and multiplication.
- * 
+ * @brief Probes the system to measure the performance of different arithmetic
+ * operations.
+ *
+ * This function calculates the median time taken for slow and fast addition and
+ * multiplication.
+ *
  * @param a An unsigned integer used as input for the timed operations.
  * @param b An unsigned integer used as input for the timed operations.
- * @return A Measured struct containing the median times for the four operations.
+ * @return A Measured struct containing the median times for the four
+ * operations.
  */
 Measured probe(unsigned a, unsigned b) {
     auto median = [](auto &&f) {
@@ -40,10 +43,11 @@ Measured probe(unsigned a, unsigned b) {
 
 /**
  * @brief The main entry point of the program.
- * 
- * This function parses command-line arguments, profiles the CPU, and runs a series of timed operations.
- * The results of the timed operations are logged to a CSV file and printed to the console.
- * 
+ *
+ * This function parses command-line arguments, profiles the CPU, and runs a
+ * series of timed operations. The results of the timed operations are logged to
+ * a CSV file and printed to the console.
+ *
  * @param argc The number of command-line arguments.
  * @param argv An array of command-line arguments.
  * @return An integer representing the exit status of the program.
@@ -106,8 +110,7 @@ auto main(int argc, char *argv[]) -> int {
     for (auto &operation : palette) {
         uint64_t cycles = operation.run(a, b);
         logger.log(operation.name, (a + b + 1) * 1000000, cycles);
-        std::cout << operation.name << " cycles=" << cycles << "
-";
+        std::cout << operation.name << " cycles=" << cycles << "\n";
     }
 
     return 0;

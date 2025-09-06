@@ -67,7 +67,6 @@ uint64_t timed_add_subnormal(unsigned a, unsigned b) {
 
 uint64_t timed_add_normal(unsigned a, unsigned b) {
     fp_enable_subnormal_slowpath();
-    unsigned csr = _mm_getcsr();
 
     const unsigned iters = (a + b + 1) * 1000000u;
 

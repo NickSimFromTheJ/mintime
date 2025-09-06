@@ -1,23 +1,81 @@
-#+title: Readme
+#+title: MINTIME: A CPU Micro-benchmark Suite
+
+* Introduction
+
+Welcome to MINTIME! This project is a C++ program designed to measure and analyze the performance of various low-level CPU operations. It's a tool for developers and curious minds who want to understand how their CPU behaves under different workloads, especially concerning subtle features like subnormal floating-point numbers and branch prediction.
+
+The program runs a series of micro-benchmarks, each targeting a specific operation, and logs the timing results to a CSV file. This data can then be used to understand the performance characteristics of your CPU.
+
+* Installation
+
+To build the project, you will need a C++ compiler (clang or g++) and CMake.
+```bash
+mkdir build
+cmake -S . -B build
+cd build
+cmake --build .
+```
+
+To run the program:
+```bash
+taskset -c 2 ./mintime 10 20
+```
+The results will be printed to the console and saved in `results.csv`.
 
 
-* MINTIME
+* Purpose
 
-A Simple pipeline state exploitation written in c++ with the following features
-        + Timing based arithmitic
-        + Greedy Algorithm to find the most amount of incremental cycles
-        + Finds better operation based on CPU
+The main goal of MINTIME is to explore how modern CPUs handle different kinds of computations. For example, some CPUs are much slower when dealing with very small floating-point numbers called "subnormal" numbers. This program can help identify if your CPU has this characteristic.
 
-WARNING: Needs more testing on other CPUs
-WARNING: Needs docs and doxygen.
+It also investigates other performance-related aspects like:
+- The cost of branch misprediction.
+- The speed of memory access (sequential vs. random).
+- The performance of basic arithmetic operations.
 
-TODO: Add More Operation Types
-        + Division, Shift. Mixed Operations
-TODO: DEPENDENCY VARIANTS
-TODO: INSTRUCTION MIX EXPERIMENTS.
-TODO: BRANCH PIPELINE BEHAVIOR
-TODO: CPU-AWARE SCHEDULING
-TODO: VISUALIZATION
-        + Export data to CSV
-TODO: CONFIGURABLE EXPERIMENT RUNNER
-TODO: VERIFICATION HELPER
+By running these tests, you can get a better understanding of your CPU's architecture.
+
+* How it Works
+
+The program is structured around a series of "timed operations". Each operation is a small piece of code that performs a specific task, like adding two numbers or accessing memory. The program uses a high-precision timer to measure how many CPU cycles each operation takes.
+
+The main steps are:
+1.  **CPU Profiling:** The program first tries to identify the CPU it's running on (using the `cpuid` instruction). This helps in selecting the right set of tests.
+2.  **Benchmarking:** It then runs a "palette" of timed operations. This includes arithmetic operations, branch tests, and memory access tests.
+3.  **Logging:** The results of each benchmark (operation name, number of iterations, and total cycles) are printed to the console and saved in a `results.csv` file for later analysis.
+
+* CPU Registers
+
+CPU registers are small, extremely fast storage locations within the CPU. They are used to hold data that the CPU is actively working on. Think of them as the CPU's personal scratchpad.
+
+In this project, we are particularly interested in a few specific registers:
+
+-   **General-Purpose Registers (EAX, EBX, ECX, EDX):** These are used for a variety of tasks. In our case, the `cpuid` instruction uses these registers to return information about the CPU, such as its vendor and model.
+-   **MXCSR Register:** This is a special-purpose register used to control the behavior of floating-point operations. For example, it can be configured to treat subnormal numbers in a way that is either faster but less precise ("flush to zero") or slower but more accurate. The `fp_enable_subnormal_slowpath` function in our code directly manipulates this register.
+-   **Time Stamp Counter (TSC):** This register counts the number of CPU cycles since the last reset. We use it to get very precise timing measurements of our benchmarked operations. The `tsc_start` and `tsc_stop` functions read this register.
+
+* Code Structure
+
+The code is organized into several files:
+
+**`src/main.cpp`**
+This is the main entry point of the program.
+-   `main()`: This function initializes everything, runs the benchmarks, and logs the results. It creates a "palette" of operations to test based on the CPU's profile.
+-   `probe()`: This function is used to quickly check if the CPU is significantly slower when handling subnormal numbers. It does this by measuring the performance of addition and multiplication with both normal and subnormal numbers.
+
+**`src/operations.cpp`**
+This file contains the implementation of the various micro-benchmarks.
+-   `timed_add_subnormal()`, `timed_add_normal()`, `timed_mul_subnormal()`, `timed_mul_normal()`, etc.: These functions measure the time it takes to perform a large number of arithmetic operations. The "subnormal" versions use very small numbers that might trigger slower execution paths on some CPUs.
+-   `timed_branch_taken()`, `timed_branch_random()`, `timed_branch_not_taken()`: These functions measure the performance of branches. `timed_branch_random` is particularly interesting as it can be used to measure the cost of a branch misprediction.
+-   `timed_mem_seq()` and `timed_mem_random()`: These functions measure the performance of memory access. Sequential access is usually much faster than random access due to CPU caching.
+-   `fp_enable_subnormal_slowpath()`: This function modifies the `MXCSR` register to ensure that subnormal numbers are handled with full precision, which is often slower.
+
+**`src/scheduler.cpp`**
+This file contains an experimental feature for scheduling a sequence of operations.
+-   `greedy_schedule()`: This function attempts to find a sequence of operations that results in a specific total execution time. It uses a "greedy" algorithm to pick the best operation at each step.
+-   `measure_increment()`: A helper function used by `greedy_schedule` to measure the additional time an operation adds to a sequence of already scheduled operations.
+
+**`src/cpuinfo.cpp`** (Note: This file is currently corrupted)
+This file is responsible for getting information about the CPU.
+-   `get_cpu_info()`: This function uses the `cpuid` instruction to get the CPU's vendor, family, and model.
+-   `profile_from_cpu()`: This function uses the information from `get_cpu_info` to create a performance profile for the CPU, which can then be used to select the appropriate benchmarks.
+

@@ -1,12 +1,19 @@
-
-
 #include "scheduler.hpp"
 #include "timing.hpp"
 #include <cstdint>
 #include <limits>
-#include <string>
 #include <vector>
 
+/**
+ * @brief Measures the incremental time taken by a candidate function when added to a prefix function.
+ * 
+ * This function calculates the time taken to execute a prefix function, and then the time taken to execute both the prefix and a candidate function.
+ * The difference between these two times is returned as the incremental time.
+ * 
+ * @param prefix A function that represents the operations already scheduled.
+ * @param candidate A function that represents the new operation to be scheduled.
+ * @return The incremental time taken by the candidate function.
+ */
 static inline uint64_t
 measure_increment(const std::function<void()> &prefix,
                   const std::function<uint64_t()> &candidate) {
@@ -27,6 +34,17 @@ measure_increment(const std::function<void()> &prefix,
     return combined > base ? combined - base : 0;
 }
 
+/**
+ * @brief Creates a schedule of operations using a greedy algorithm.
+ * 
+ * This function selects the operation that adds the minimum incremental time at each step.
+ * 
+ * @param palette A vector of TimedOperations to choose from.
+ * @param a An unsigned integer used as input for the timed operations.
+ * @param b An unsigned integer used as input for the timed operations.
+ * @param steps The number of steps in the schedule.
+ * @return A GreedyPlan struct containing the sequence of operations and the total cycles.
+ */
 GreedyPlan greedy_schedule(const std::vector<TimedOperations> &palette,
                            unsigned a, unsigned b, int steps) {
     GreedyPlan plan;

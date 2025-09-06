@@ -1,15 +1,26 @@
 #include "cpuinfo.hpp"
+#include "csv_logger.hpp"
+#include "operations.hpp"
 #include "scheduler.hpp"
-#include "stall_add.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 
 struct Measured {
     uint64_t add_slow, add_fast, mul_slow, mul_fast;
 };
 
+/**
+ * @brief Probes the system to measure the performance of different arithmetic operations.
+ * 
+ * This function calculates the median time taken for slow and fast addition and multiplication.
+ * 
+ * @param a An unsigned integer used as input for the timed operations.
+ * @param b An unsigned integer used as input for the timed operations.
+ * @return A Measured struct containing the median times for the four operations.
+ */
 Measured probe(unsigned a, unsigned b) {
     auto median = [](auto &&f) {
         const int N = 9;
@@ -27,6 +38,16 @@ Measured probe(unsigned a, unsigned b) {
     return m;
 }
 
+/**
+ * @brief The main entry point of the program.
+ * 
+ * This function parses command-line arguments, profiles the CPU, and runs a series of timed operations.
+ * The results of the timed operations are logged to a CSV file and printed to the console.
+ * 
+ * @param argc The number of command-line arguments.
+ * @param argv An array of command-line arguments.
+ * @return An integer representing the exit status of the program.
+ */
 auto main(int argc, char *argv[]) -> int {
 
     unsigned a = 10, b = 20;
@@ -40,6 +61,7 @@ auto main(int argc, char *argv[]) -> int {
         (m.add_slow > m.add_fast * 2) || (m.mul_slow > m.mul_fast * 2);
     CPUInfo ci = get_cpu_info();
     auto prof = profile_from_cpu(ci);
+
     std::vector<TimedOperations> palette;
 
     if (subnormals_help || prof.has_slow_subnormals) {
@@ -62,12 +84,31 @@ auto main(int argc, char *argv[]) -> int {
     palette.push_back({"sub_fast", [](unsigned x, unsigned y) {
                            return timed_sub_normal(x, y);
                        }});
+    palette.push_back({"branch_taken", [](unsigned, unsigned) {
+                           return timed_branch_taken(1000000);
+                       }});
+    palette.push_back({"branch_random", [](unsigned, unsigned) {
+                           return timed_branch_random(1000000);
+                       }});
+    palette.push_back({"branch_not_taken", [](unsigned, unsigned) {
+                           return timed_branch_not_taken(1000000);
+                       }});
+    palette.push_back(
+        {"mem_seq", [](unsigned, unsigned) { return timed_mem_seq(1000000); }});
 
-    auto plan = greedy_schedule(palette, a, b, /*steps=*/6);
-    printf("Chosen seq (%zu ops): ", plan.sequence.size());
-    for (auto &s : plan.sequence)
-        printf("%s ", s.c_str());
-    printf("\nTotal incremental cycles ~ %llu\n",
-           (unsigned long long)plan.total_cycles);
+    palette.push_back({"mem_random", [](unsigned, unsigned) {
+                           return timed_mem_random(1000000);
+                       }});
+
+    //    auto plan = greedy_schedule(palette, a, b, /*steps=*/6);
+
+    CSVLogger logger("results.csv");
+    for (auto &operation : palette) {
+        uint64_t cycles = operation.run(a, b);
+        logger.log(operation.name, (a + b + 1) * 1000000, cycles);
+        std::cout << operation.name << " cycles=" << cycles << "
+";
+    }
+
     return 0;
 }

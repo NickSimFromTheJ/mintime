@@ -5,12 +5,15 @@
 struct CPUInfo {
     std::string vendor;
     unsigned family = 0, model = 0;
+    std::string brand;
 };
 struct MachineProfile {
     bool has_slow_subnormals;
     bool prefer_int_chain;
     bool lea_is_costly;
-    int issue_width; // rough guidance
+    int issue_width;
+    bool branch_mispredict_expensive;
+    bool prefer_independent_ops;
 };
 
 CPUInfo get_cpu_info();

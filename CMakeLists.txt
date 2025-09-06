@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 
-project(mintime LANGUAGES C CXX VERSION 0.0.1)
+project(mintime LANGUAGES C CXX VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED CXX)
@@ -12,7 +12,7 @@ endif()
 
 add_executable(mintime
   src/main.cpp
-  src/stall_add.cpp
+  src/operations.cpp
   src/scheduler.cpp
   src/cpuinfo.cpp
 )

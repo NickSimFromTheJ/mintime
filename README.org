@@ -2,7 +2,7 @@
 
 * Introduction
 
-Welcome to MINTIME! This project is a C++ program designed to measure and analyze the performance of various low-level CPU operations. It's a tool for developers and curious minds who want to understand how their CPU behaves under different workloads, especially concerning subtle features like subnormal floating-point numbers and branch prediction.
+This project is a C++ program designed to measure and analyze the performance of various low-level CPU operations. It's a tool for developers and curious minds who want to understand how their CPU behaves under different workloads, especially concerning subtle features like subnormal floating-point numbers and branch prediction.
 
 The program runs a series of micro-benchmarks, each targeting a specific operation, and logs the timing results to a CSV file. This data can then be used to understand the performance characteristics of your CPU.
 
@@ -21,7 +21,6 @@ To run the program:
 taskset -c 2 ./mintime 10 20
 ```
 The results will be printed to the console and saved in `results.csv`.
-
 
 * Purpose
 
